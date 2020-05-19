@@ -1,0 +1,66 @@
+/****** READ ME FIRST ******/
+We integrated our test code into server.cpp instead of writing separate test codes.
+Therefore please follow the instructions below for testing the performance.
+/***************************/
+
+Instruction:
+
+(1) How to run server.cpp:
+
+    In docker-compose.yml:
+    <snip>
+    service:
+        <snip>
+        command: bash -c "<command line arguments>"
+        <snip>
+
+    command usage:  taskset --cpu-list <core_list> ./server <bucket_size> <method>
+
+            core_list: the core(s) to run code with, ranging from 0~3,
+                        separate with comma(,). Default run with four cores.
+            bucket_size: the size of bucket
+            method: 0 for thread per request
+                    1 for pre-create
+    example:  bash -c "taskset --cpu-list 0,1 ./server 128 1"
+    explanation: run server.cpp in docker with 2 cores, the bucket size of 128, 
+                 using pre-create stretagy
+
+
+(2) How to run client.cpp:
+    under src/
+    usage: ./client <machine_to_connect> <delay_range> <bucket_size>
+
+            machine_to_connect: the machine IP which the server code runs on
+            delay_range: the range of delay, e.g. 3 indicates that the delay
+                         range is 1~3s
+            bucket_size: Keep this argument the same as the one for the server,
+                         otherwise may cause the segmentation fault.
+    example: ./client vcm-13673.vm.duke.edu 3 512
+    explanation: run client.cpp, to connect with machine 'vcm-13673.vm.duke.edu',
+                 with delay range of 3 and bucket size of 512.
+
+
+(3) Test guide:
+
+    There's a logfile "throughput.txt". After running the code, for every 10 
+    seconds the number of request completed by the server will be logged in this 
+    txt, in such a format: 'Number of request handled: <number>' 
+        e.g. Number of request handled: 795
+
+    There's a problem when we did the test that the client machine frequently
+    reaches the limit of max connection, and the program will either got killed or 
+    shows 'cannot connect the socket', even after we have increased our limit.
+    If this happens, just run the client program again. 
+    
+    To saturate the throughput faster, you can run multiple client program at one 
+    time, but do not need to be too much, since our client code is designed to be 
+    multi-thread. When we did the test, we opened 4 ternimals to run client code.
+
+    For every data point, change the corresponding arguments, and run the client 
+    code for 3 min. 
+
+    After running both sides of the code for 3 min, in the throughput.txt file, 
+    the number of completed requests will finally become stable to be a fixed 
+    number, which indicates the throughput has been saturated. This fixed number 
+    would be the data we want.
+

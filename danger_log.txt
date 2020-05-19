@@ -1,0 +1,16 @@
+Danger Log
+
+03/28/2020:
+In client.cpp, the message received back by the server contains some unreadable
+character at the end. Possibly do not impact scalability but definitely impact 
+functionality. Fixed by modifying the recv().
+03/30/2020:
+For per-request, there's no concurrency at all. Every thread is executed sequentially.
+Fixed by change join() to detach().
+04/01/2020:
+For pre-create, the race condition still happens occasionally.
+04/03/2020:
+Even after we increased the limit of opened files, the client program still will be
+killed or showing "cannot connect the socket" error after executing for a while.
+
+

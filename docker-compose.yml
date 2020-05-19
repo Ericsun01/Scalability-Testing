@@ -1,0 +1,10 @@
+version: '2'
+services:
+  server:
+    build: ./src
+    command: bash -c "taskset --cpu-list 0,1 ./server 128 1"
+    volumes:
+      - ./src:/code
+    ports:
+      - "12345:12345"
+    tty: true
